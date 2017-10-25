@@ -31,7 +31,6 @@
  *   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <stdint.h>
-#include <string.h>
 #include <inttypes.h>
 #include <rte_eal.h>
 #include <rte_ethdev.h>
@@ -115,28 +114,6 @@ port_init(uint8_t port, struct rte_mempool *mbuf_pool)
 	return 0;
 }
 
-void btf_print(int n, char s[][128]){
-    int maxlen = 0;
-    for (int i=0; i<n; i++){
-        maxlen=maxlen>strlen(s[i])?maxlen:strlen(s[i]);
-    }
-    printf("┌");
-    for (int i = 0 ;i<maxlen;i++)
-        printf("-");
-    printf("┐\n");
-    for (int i = 0;i<n;i++){
-        printf("|");
-        printf("%s",s[i]);
-        for (int j = strlen(s[i]);j<maxlen;j++)
-            printf(" ");
-        printf("|\n");
-    }
-    printf("└");
-    for (int i = 0 ;i<maxlen;i++)
-        printf("-");
-    printf("┘\n");
-}
-
 void 
 priintxx(struct rte_mbuf * m)
 {
@@ -151,55 +128,51 @@ priintxx(struct rte_mbuf * m)
 		unsigned char ip[4];
 	}ip_addr;
 
-    char toprint[20][128];
-
 	eth = rte_pktmbuf_mtod(m, struct ether_hdr *);
 	addr = eth->d_addr;
 	printf("ether layer information:\n");
-    sprintf(toprint[0],"dst_mac: %x %x %x %x %x %x",
+	printf("dst_mac: %02" PRIx8 " %02" PRIx8 " %02" PRIx8
+			   " %02" PRIx8 " %02" PRIx8 " %02" PRIx8 "\n",
 			addr.addr_bytes[0], addr.addr_bytes[1],
 			addr.addr_bytes[2], addr.addr_bytes[3],
 			addr.addr_bytes[4], addr.addr_bytes[5]);
 	addr = eth->s_addr;
-    sprintf(toprint[1],"src_mac: %x %x %x %x %x %x",
+	printf("src_mac: %02" PRIx8 " %02" PRIx8 " %02" PRIx8
+			   " %02" PRIx8 " %02" PRIx8 " %02" PRIx8 "\n",
 			addr.addr_bytes[0], addr.addr_bytes[1],
 			addr.addr_bytes[2], addr.addr_bytes[3],
 			addr.addr_bytes[4], addr.addr_bytes[5]);
-	sprintf(toprint[2],"type:%x",eth->ether_type);
-    btf_print(3,toprint);
-
+	printf("type:%x\n",eth->ether_type);
 	rte_pktmbuf_adj(m, (uint16_t)sizeof(struct ether_hdr));
+
 	ipv = rte_pktmbuf_mtod(m,struct ipv4_hdv*);
 	printf("\nip layer information:\n");
-    sprintf(toprint[0],"version_ihl: %d", ipv->version_ihl);
-	sprintf(toprint[1],"type_of_service: %d", ipv->type_of_service);
-	sprintf(toprint[2],"total_length: %d", ntohs(ipv->total_length));
-	sprintf(toprint[3],"packet_id: %d", ntohs(ipv->packet_id));
-	sprintf(toprint[4],"fragment_offset: %d", ntohs(ipv->fragment_offset));
-	sprintf(toprint[5],"time_to_live: %d", ipv->time_to_live);
-	sprintf(toprint[6],"next_proto_id: %d", ipv->next_proto_id);
-	sprintf(toprint[7],"hdr_checksum: %x", ntohs(ipv->hdr_checksum));
+	printf("version_ihl:%d\n", ipv->version_ihl);
+	printf("type_of_service:%d\n", ipv->type_of_service);
+	printf("total_length:%d\n", ntohs(ipv->total_length));
+	printf("packet_id:%d\n", ntohs(ipv->packet_id));
+	printf("fragment_offset:%d\n", ntohs(ipv->fragment_offset));
+	printf("time_to_live:%d\n", ipv->time_to_live);
+	printf("next_proto_id:%d\n", ipv->next_proto_id);
+	printf("hdr_checksum:%x\n", ntohs(ipv->hdr_checksum));
 	ip_addr.ipaddr = rte_be_to_cpu_32(ipv->src_addr);
-	sprintf(toprint[8],"src_addr: %d.%d.%d.%d", ip_addr.ip[3], ip_addr.ip[2], ip_addr.ip[1], ip_addr.ip[0]);
+	printf("src_addr:%d:%d:%d:%d\n", ip_addr.ip[3], ip_addr.ip[2], ip_addr.ip[1], ip_addr.ip[0]);
 	ip_addr.ipaddr = rte_be_to_cpu_32(ipv->dst_addr);
-	sprintf(toprint[9],"dst_addr: %d.%d.%d.%d", ip_addr.ip[3], ip_addr.ip[2], ip_addr.ip[1], ip_addr.ip[0]);
+	printf("dst_addr:%d:%d:%d:%d\n", ip_addr.ip[3], ip_addr.ip[2], ip_addr.ip[1], ip_addr.ip[0]);
 	rte_pktmbuf_adj(m, (uint16_t)sizeof(struct ipv4_hdr));
-    btf_print(10,toprint);
 
 	udp = rte_pktmbuf_mtod(m,struct udp_hdr*);
 	printf("\n udp layer information :\n");
-	sprintf(toprint[0],"src_port: %d", ntohs(udp->src_port));
-	sprintf(toprint[1],"dst_port: %d", ntohs(udp->dst_port));
-	sprintf(toprint[2],"dgram_len: %d", ntohs(udp->dgram_len));
-	sprintf(toprint[3],"dgram_cksum: %d", ntohs(udp->dgram_cksum));
-    btf_print(4,toprint);
-
+	printf("src_port:%d\n", ntohs(udp->src_port));
+	printf("dst_port:%d\n", ntohs(udp->dst_port));
+	printf("dgram_len:%d\n", ntohs(udp->dgram_len));
+	printf("dgram_cksum:%d\n", ntohs(udp->dgram_cksum));
 	rte_pktmbuf_adj(m, (uint16_t)sizeof(struct udp_hdr));
+
 	printf("\n other information:\n");
 	data = (char *)malloc(rte_pktmbuf_data_len(m)*sizeof(char));
 	memcpy(data,rte_pktmbuf_mtod(m,char *),rte_pktmbuf_data_len(m));
-    sprintf(toprint[0],"%s",data);
-    btf_print(1,toprint);
+	printf("%s\nend\n", data);
 	free(data);
 	return;
 }
