@@ -30,7 +30,6 @@
  *   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  *   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 #include <stdint.h>
 #include <inttypes.h>
 #include <rte_eal.h>
@@ -198,23 +197,29 @@ getudpm(struct rte_mbuf *m)
 {
 	unsigned char send_msg[1024] = {
 		//--------------组MAC--------14------
-		0x08, 0x00, 0x27, 0xa3, 0x67, 0x7c, //dst_mac: 0x08, 0x00, 0x27, 0xa3, 0x67, 0x7c
-		0x08, 0x00, 0x27, 0xe7, 0xe8, 0xab, //src_mac: 0x08, 0x00, 0x27, 0xe7, 0xe8, 0xab
+		//0x08, 0x00, 0x27, 0xa3, 0x67, 0x7c, //dst_mac: 0x08, 0x00, 0x27, 0xa3, 0x67, 0x7c
+        0xd4, 0xae, 0x52, 0xa3, 0x71, 0xf6,
+		//0x08, 0x00, 0x27, 0xe7, 0xe8, 0xab, //src_mac: 0x08, 0x00, 0x27, 0xe7, 0xe8, 0xab
+        0x78, 0x2b, 0xcb, 0x11, 0x1b, 0xda,
 		0x08, 0x00,                        //类型：0x0800 IP协议
 		//--------------组IP---------20------
 		0x45, 0x00, 0x00, 0x00,            //版本号：4, 首部长度：20字节, TOS:0, --总长度--：
 		0x00, 0x00, 0x00, 0x00,    //16位标识、3位标志、13位片偏移都设置0
 		0x80, 0x17,  0x00, 0x00,    //TTL：128、协议：UDP（17）、16位首部校验和
-		192,  168,  0,  2,    //src_ip: 192,  168,  0,  2
-		192,  168,  0,  1,    //dst_ip: 192,  168,  0,  1
+		//192,  168,  0,  2,    //src_ip: 192,  168,  0,  2
+		//192,  168,  0,  1,    //dst_ip: 192,  168,  0,  1
+        192, 168, 1, 142,
+        192, 168, 1, 145,
 		//--------------组UDP--------8+78=86------
 		0x1f, 0x90, 0x1f, 0x90,            //src_port:0x1f90(8080), dst_port:0x1f90(8080)
 		0x00, 0x00, 0x00, 0x00,              //#--16位UDP长度--30个字节、#16位校验和
 	};
 	unsigned char pseudo_head[1024] = {
 		//------------UDP伪头部--------12--
-		192,  168,  0,  2,    //src_ip: 192,  168,  0,  2
-		192,  168,  0,  1,    //dst_ip: 192,  168,  0,  1
+		//192,  168,  0,  2,    //src_ip: 192,  168,  0,  2
+		//192,  168,  0,  1,    //dst_ip: 192,  168,  0,  1
+        192, 168, 1, 142,
+        192, 168, 1, 145,
 		0x00, 17,  0x00, 0x00,             //0,17,#--16位UDP长度--20个字节
 	};
 	char *data;
